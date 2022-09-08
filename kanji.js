@@ -2,6 +2,7 @@ let quizData = {};
 let currentQuizNo = 0;
 let correctCount = 0;
 
+
 //問題データの取得
 get_quiz_data();
 
@@ -13,13 +14,14 @@ register_start_event();
 
 //問題のデータを取得する
 function get_quiz_data(){
+    let quizjs = "http://my-json-server.typicode.com/oimo-imo/kanji/db"
     let xhr = new XMLHttpRequest();
+    xhr.open('GET', quizjs);
+    xhr.responseType = "json";
+    xhr.send();
     xhr.onload = function(){
             quizData = xhr.response;
     }
-    xhr.open('GET', 'quiz.json');
-    xhr.responseType = "json";
-    xhr.send();
 }
 
 //問題開始のイベントを設定する
@@ -28,7 +30,7 @@ function register_start_event(){
         //問題画面の生成
         generate_quiz_content();
         //
-        refiste_choice_event();
+        register_choice_event();
     }, false);
 }
 
@@ -110,6 +112,47 @@ function generate_quiz_content() {
 }
 
 
+//回答・解説画面を生成する
 
+function generate_answer_content(choice) {
+   var ins = '<h2 class="quiz_ttl">' + quizData['quiz'][currentQuizNo]['q'] + '</h2>';
+   // 正解の場合
+   if(quizData['quiz'][currentQuizNo]['correct'] === choice) {
+       ins += '<p class="quiz-result">正解</p>';
+       correctCount++;
+   // 不正解の場合
+   } else {
+       ins += '<p class="quiz-result">不正解</p>';
+   }
+   ins += '<p class="quiz-comment">' + quizData['quiz'][currentQuizNo]['commentary'] + '</p>';
+   // 未回答の問題がある場合
+   if(currentQuizNo + 1 < quizData['quiz'].length) {
+       ins += '<div class="quiz-next">';
+           ins += ' <button class="btn-next">次の問題</button>';
+       ins += '</div>';
+   // 全て回答済の場合
+   } else {
+       ins += '<div class="p-quiz-next">';
+           ins += '<button class="c-btn js-quiz-result">結果を見る</button>';
+       ins += '</div>';
+   }
 
+   document.querySelector('.js-quiz-content').innerHTML = ins;
+}
+
+//結果画面を生成する
+function generate_result_content() {
+    var ins = '<h2 class="quiz_ttl">結果は' + (currentQuizNo+1) + '問中' + correctCount + '問正解でした</h1>';
+    for (var i = 0; i < quizData['rank'].length; i++) {
+        if(correctCount >= quizData['rank'][i]['count']) {
+            ins += '<p class="quiz-comment">' + quizData['rank'][i]['comment'] + '</p>';
+            break;
+        }
+    }
+    ins += ' <div class="quiz-next">';
+        ins += '<button class="btn-top">トップに戻る</button>';
+    ins += '</div>';
+ 
+    document.querySelector('.quiz_content').innerHTML = ins;
+}
 
